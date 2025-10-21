@@ -1,0 +1,329 @@
+<%- include('../partials/header') %>
+
+<div class="customer-menu">
+    <div class="menu-header">
+        <h2><%= restaurant.name %> - Menu</h2>
+        <% if (table) { %>
+            <p>Table: <%= table.tableNumber %></p>
+        <% } %>
+    </div>
+
+    <div class="cart-summary">
+        <div class="cart-info">
+            <span>Cart: <span id="cart-count"><%= cart.items.length %></span> items</span>
+            <span>Total: $<span id="cart-total"><%= cart.total ? cart.total.toFixed(2) : '0.00' %></span></span>
+        </div>
+        <a href="/r/<%= restaurant.slug %>/cart" class="btn btn-primary">View Cart</a>
+    </div>
+
+    <div class="menu-categories">
+        <% Object.keys(menu).forEach(category => { %>
+            <section class="menu-category">
+                <h3><%= category %></h3>
+                <div class="menu-items">
+                    <% menu[category].forEach(item => { %>
+                        <div class="menu-item" data-item-id="<%= item._id %>">
+                            <div class="item-info">
+                                <h4><%= item.name %></h4>
+
+                                <% if (item.images && item.images.length > 0) { %>
+                                    <div class="item-images">
+                                        <% item.images.forEach((image, index) => { %>
+                                            <img src="<%= image %>" alt="<%= item.name %> - Image <%= index + 1 %>"
+                                                 class="menu-item-image <%= index === 0 ? 'active' : '' %>"
+                                                 onclick="showImage('<%= item._id %>', <%= index %>)">
+                                        <% }); %>
+                                    </div>
+                                <% } %>
+
+                                <p class="item-description"><%= item.description %></p>
+
+                                <div class="item-tags">
+                                    <% if (item.isVegetarian) { %>
+                                        <span class="tag tag-veg">Veg</span>
+                                    <% } %>
+                                    <% if (item.isVegan) { %>
+                                        <span class="tag tag-vegan">Vegan</span>
+                                    <% } %>
+                                    <% if (item.isGlutenFree) { %>
+                                        <span class="tag tag-gf">GF</span>
+                                    <% } %>
+                                    <% if (item.spicyLevel > 0) { %>
+                                        <span class="tag tag-spicy">
+                                            <% for(let i = 0; i < item.spicyLevel; i++) { %>🌶️<% } %>
+                                        </span>
+                                    <% } %>
+                                </div>
+
+                                <% if (item.arModel && (item.arModel.android || item.arModel.ios)) { %>
+                                    <div class="ar-buttons">
+                                        <% if (item.arModel.ios) { %>
+                                            <a href="<%= item.arModel.ios %>"
+                                               rel="ar"
+                                               class="btn-ar btn-ar-ios"
+                                               id="ar-ios-<%= item._id %>">
+                                                <img src="/images/ar-icon.png" alt="AR"> View in AR (iOS)
+                                            </a>
+                                        <% } %>
+                                        <% if (item.arModel.android) { %>
+                                            <a href="#"
+                                               onclick="openAndroidAR('<%= item.arModel.android %>', '<%= item.name %>')"
+                                               class="btn-ar btn-ar-android">
+                                                <img src="/images/ar-icon.png" alt="AR"> View in AR (Android)
+                                            </a>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+
+                                <p class="item-price">$<%= item.price.toFixed(2) %></p>
+                            </div>
+                            <div class="item-actions">
+                                <form class="add-to-cart-form" data-item-id="<%= item._id %>" data-item-name="<%= item.name %>" data-item-price="<%= item.price %>">
+                                    <div class="quantity-selector">
+                                        <button type="button" class="btn-qty-minus">-</button>
+                                        <input type="number" name="quantity" value="1" min="1" max="10" class="qty-input">
+                                        <button type="button" class="btn-qty-plus">+</button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
+                                </form>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </section>
+        <% }); %>
+    </div>
+
+    <% if (typeof customer === 'undefined' || !customer) { %>
+        <div class="customer-login-prompt">
+            <p>Enter your phone number to track your order:</p>
+            <form id="customer-login-form">
+                <input type="tel" name="phone" placeholder="Phone number" required>
+                <button type="submit" class="btn btn-primary">Continue</button>
+            </form>
+        </div>
+    <% } %>
+</div>
+
+<script>
+// Add to cart functionality
+document.querySelectorAll('.add-to-cart-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const itemId = form.dataset.itemId;
+        const itemName = form.dataset.itemName;
+        const quantity = form.querySelector('.qty-input').value;
+
+        try {
+            const response = await fetch('/r/<%= restaurant.slug %>/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId,
+                    quantity: parseInt(quantity)
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update cart display
+                document.getElementById('cart-count').textContent = data.cart.items.length;
+                document.getElementById('cart-total').textContent = data.cart.total.toFixed(2);
+
+                // Show success message
+                alert(`Added ${quantity} x ${itemName} to cart`);
+
+                // Reset quantity
+                form.querySelector('.qty-input').value = 1;
+            } else {
+                alert('Error adding item to cart: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding item to cart');
+        }
+    });
+});
+
+// Quantity selector buttons
+document.querySelectorAll('.btn-qty-minus').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const input = btn.nextElementSibling;
+        const currentVal = parseInt(input.value);
+        if (currentVal > 1) {
+            input.value = currentVal - 1;
+        }
+    });
+});
+
+document.querySelectorAll('.btn-qty-plus').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        const currentVal = parseInt(input.value);
+        if (currentVal < 10) {
+            input.value = currentVal + 1;
+        }
+    });
+});
+
+// Customer login
+const loginForm = document.getElementById('customer-login-form');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const phone = e.target.phone.value;
+
+        try {
+            const response = await fetch('/auth/customer-login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phone,
+                    restaurantId: '<%= restaurant._id %>'
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error logging in: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error logging in');
+        }
+    });
+}
+
+// Image gallery functionality
+function showImage(itemId, index) {
+    const menuItem = document.querySelector(`[data-item-id="${itemId}"]`);
+    const images = menuItem.querySelectorAll('.menu-item-image');
+
+    images.forEach((img, i) => {
+        if (i === index) {
+            img.classList.add('active');
+        } else {
+            img.classList.remove('active');
+        }
+    });
+}
+
+// Android AR functionality
+function openAndroidAR(modelUrl, itemName) {
+    // Create the intent URL for Android Scene Viewer
+    const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(modelUrl)}&mode=ar_preferred&title=${encodeURIComponent(itemName)}#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url=https://developers.google.com/ar;end;`;
+
+    // Try to open the AR viewer
+    window.location.href = intentUrl;
+}
+
+// Detect device type for AR button visibility
+function detectDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // iOS detection
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+        document.body.classList.add('ios-device');
+        // Hide Android AR buttons on iOS
+        document.querySelectorAll('.btn-ar-android').forEach(btn => btn.style.display = 'none');
+    }
+    // Android detection
+    else if (/android/i.test(userAgent)) {
+        document.body.classList.add('android-device');
+        // Hide iOS AR buttons on Android
+        document.querySelectorAll('.btn-ar-ios').forEach(btn => btn.style.display = 'none');
+    }
+}
+
+// Run device detection on page load
+document.addEventListener('DOMContentLoaded', detectDevice);
+</script>
+
+<style>
+/* Image gallery styles */
+.item-images {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+}
+
+.menu-item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s, transform 0.3s;
+    border: 2px solid transparent;
+}
+
+.menu-item-image.active {
+    opacity: 1;
+    transform: scale(1.1);
+    border-color: #3498db;
+}
+
+.menu-item-image:hover {
+    opacity: 1;
+}
+
+/* AR button styles */
+.ar-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.btn-ar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: transform 0.3s;
+}
+
+.btn-ar:hover {
+    transform: scale(1.05);
+}
+
+.btn-ar img {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-ar-ios {
+    background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+}
+
+.btn-ar-android {
+    background: linear-gradient(135deg, #48c774 0%, #3298dc 100%);
+}
+
+/* Hide AR buttons based on device */
+.ios-device .btn-ar-android {
+    display: none !important;
+}
+
+.android-device .btn-ar-ios {
+    display: none !important;
+}
+</style>
+
+<%- include('../partials/footer') %>

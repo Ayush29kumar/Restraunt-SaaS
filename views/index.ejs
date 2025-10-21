@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant SaaS Platform</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="landing-page">
+        <header>
+            <div class="container">
+                <h1>Restaurant SaaS Platform</h1>
+                <p>Multi-tenant restaurant management system</p>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="landing-content">
+                <section class="hero">
+                    <h2>Welcome to Restaurant SaaS</h2>
+                    <p>Manage your restaurant operations efficiently</p>
+                </section>
+
+                <section class="login-options">
+                    <h3>Select Your Portal</h3>
+                    <div class="portal-grid">
+                        <div class="portal-card">
+                            <h4>Super Admin</h4>
+                            <p>Manage all restaurants</p>
+                            <a href="/auth/login?role=superadmin" class="btn btn-primary">Super Admin Login</a>
+                        </div>
+                        <div class="portal-card">
+                            <h4>Restaurant Admin</h4>
+                            <p>Manage your restaurant</p>
+                            <a href="/auth/login?role=admin" class="btn btn-primary">Admin Login</a>
+                        </div>
+                        <div class="portal-card">
+                            <h4>Staff</h4>
+                            <p>Manage orders</p>
+                            <a href="/auth/login?role=staff" class="btn btn-primary">Staff Login</a>
+                        </div>
+                        <div class="portal-card">
+                            <h4>Customer</h4>
+                            <p>Scan QR code at your table</p>
+                            <p class="text-muted">Use the QR code on your table to access the menu</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="demo-info">
+                    <h3>Demo Restaurants</h3>
+                    <p>For testing, you can visit these demo restaurant pages:</p>
+                    <ul>
+                        <li><a href="/r/demo-restaurant/table/1">Demo Restaurant - Table 1</a></li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2024 Restaurant SaaS Platform</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

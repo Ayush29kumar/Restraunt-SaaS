@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+
+<div class="orders-management">
+    <h2>Orders Management</h2>
+
+    <div class="filters">
+        <form method="GET" action="/admin/orders">
+            <div class="filter-row">
+                <select name="status">
+                    <option value="">All Status</option>
+                    <option value="pending" <%= filters && filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="preparing" <%= filters && filters.status === 'preparing' ? 'selected' : '' %>>Preparing</option>
+                    <option value="served" <%= filters && filters.status === 'served' ? 'selected' : '' %>>Served</option>
+                    <option value="done" <%= filters && filters.status === 'done' ? 'selected' : '' %>>Done</option>
+                    <option value="cancelled" <%= filters && filters.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                </select>
+                <input type="date" name="date" value="<%= filters && filters.date ? filters.date : '' %>" placeholder="Filter by date">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="/admin/orders" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Table</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (orders && orders.length > 0) { %>
+                <% orders.forEach(order => { %>
+                    <tr>
+                        <td><%= order.orderNumber %></td>
+                        <td>Table <%= order.table ? order.table.tableNumber : 'N/A' %></td>
+                        <td>
+                            <% if (order.customer) { %>
+                                <%= order.customer.name %><br>
+                                <small><%= order.customer.phone %></small>
+                            <% } else { %>
+                                <%= order.customerPhone %>
+                            <% } %>
+                        </td>
+                        <td>
+                            <%= order.items.length %> items
+                            <% if (order.items && order.items.length > 0) { %>
+                                <ul class="item-list">
+                                    <% order.items.slice(0, 3).forEach(item => { %>
+                                        <li><small><%= item.quantity %>x <%= item.menuItem ? item.menuItem.name : item.name %></small></li>
+                                    <% }); %>
+                                    <% if (order.items.length > 3) { %>
+                                        <li><small>... and <%= order.items.length - 3 %> more</small></li>
+                                    <% } %>
+                                </ul>
+                            <% } %>
+                        </td>
+                        <td>$<%= order.total ? order.total.toFixed(2) : '0.00' %></td>
+                        <td>
+                            <span class="badge badge-<%=
+                                order.status === 'pending' ? 'warning' :
+                                order.status === 'preparing' ? 'info' :
+                                order.status === 'served' ? 'primary' :
+                                order.status === 'done' ? 'success' :
+                                order.status === 'cancelled' ? 'danger' : 'secondary'
+                            %>">
+                                <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                            </span>
+                        </td>
+                        <td>
+                            <%= new Date(order.createdAt).toLocaleDateString() %><br>
+                            <small><%= new Date(order.createdAt).toLocaleTimeString() %></small>
+                        </td>
+                        <td>
+                            <a href="/admin/orders/<%= order._id %>" class="btn btn-sm">View</a>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="8" class="text-center">No orders found</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="order-stats">
+        <h3>Order Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Orders</h4>
+                <p class="stat-number"><%= orders.length %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Pending</h4>
+                <p class="stat-number"><%= orders.filter(o => o.status === 'pending').length %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Completed</h4>
+                <p class="stat-number"><%= orders.filter(o => o.status === 'done').length %></p>
+            </div>
+            <div class="stat-card">
+                <h4>Total Revenue</h4>
+                <p class="stat-number">$<%= orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2) %></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .filters {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    .filter-row select,
+    .filter-row input {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .item-list {
+        margin: 0.5rem 0;
+        padding-left: 1rem;
+        list-style: none;
+    }
+    .item-list li {
+        line-height: 1.2;
+    }
+    .order-stats {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .order-stats h3 {
+        margin-bottom: 1rem;
+    }
+</style>
+
+<%- include('../partials/footer') %>

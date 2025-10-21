@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Restaurant SaaS</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="auth-page">
+        <div class="container">
+            <div class="auth-box">
+                <h1>Login</h1>
+
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-error"><%= error %></div>
+                <% } %>
+
+                <form method="POST" action="/auth/login">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role">
+                            <option value="">Auto-detect</option>
+                            <option value="superadmin">Super Admin</option>
+                            <option value="admin">Restaurant Admin</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+
+                    <% if (typeof returnTo !== 'undefined' && returnTo) { %>
+                        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+                    <% } %>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <a href="/" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Demo Credentials:</p>
+                    <ul>
+                        <li>Super Admin: superadmin / superadmin123</li>
+                        <li>Restaurant Admin: admin / admin123</li>
+                        <li>Staff: staff / staff123</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

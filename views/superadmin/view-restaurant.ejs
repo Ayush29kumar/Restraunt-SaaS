@@ -1,0 +1,178 @@
+<%- include('../partials/header') %>
+
+<div class="restaurant-details">
+    <h2><%= restaurant.name %></h2>
+
+    <div class="restaurant-info">
+        <table class="data-table">
+            <tr>
+                <th>Subdomain</th>
+                <td><%= restaurant.subdomain %></td>
+            </tr>
+            <tr>
+                <th>Slug</th>
+                <td><%= restaurant.slug %></td>
+            </tr>
+            <tr>
+                <th>Address</th>
+                <td><%= restaurant.address || 'Not provided' %></td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td><%= restaurant.phone || 'Not provided' %></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td><%= restaurant.email || 'Not provided' %></td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>
+                    <span class="badge <%= restaurant.isActive ? 'badge-success' : 'badge-danger' %>">
+                        <%= restaurant.isActive ? 'Active' : 'Inactive' %>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Created By</th>
+                <td><%= restaurant.createdBy ? restaurant.createdBy.name : 'System' %></td>
+            </tr>
+            <tr>
+                <th>Created At</th>
+                <td><%= new Date(restaurant.createdAt).toLocaleDateString() %></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-number"><%= stats.totalUsers %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <p class="stat-number"><%= stats.totalOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Pending Orders</h3>
+            <p class="stat-number"><%= stats.pendingOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Completed Orders</h3>
+            <p class="stat-number"><%= stats.completedOrders %></p>
+        </div>
+    </div>
+
+    <section class="recent-section">
+        <h3>Restaurant Users</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (users && users.length > 0) { %>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td><%= user.name %></td>
+                            <td><%= user.username %></td>
+                            <td>
+                                <span class="badge">
+                                    <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+                                </span>
+                            </td>
+                            <td><%= user.email || 'N/A' %></td>
+                            <td><%= user.phone || 'N/A' %></td>
+                            <td>
+                                <span class="badge <%= user.isActive ? 'badge-success' : 'badge-danger' %>">
+                                    <%= user.isActive ? 'Active' : 'Inactive' %>
+                                </span>
+                            </td>
+                            <td>
+                                <%= user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never' %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" class="text-center">No users found for this restaurant</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="recent-section">
+        <h3>Customer Access URLs</h3>
+        <div class="access-urls">
+            <p><strong>Restaurant Menu URL:</strong></p>
+            <code>http://localhost:3000/r/<%= restaurant.slug %>/menu</code>
+
+            <p><strong>Table Access URLs (Examples):</strong></p>
+            <code>http://localhost:3000/r/<%= restaurant.slug %>/table/1</code><br>
+            <code>http://localhost:3000/r/<%= restaurant.slug %>/table/2</code><br>
+            <code>http://localhost:3000/r/<%= restaurant.slug %>/table/3</code>
+
+            <p class="text-muted">Customers can access the restaurant menu by scanning QR codes at tables or using these URLs directly.</p>
+        </div>
+    </section>
+
+    <div class="actions">
+        <a href="/superadmin/restaurants/<%= restaurant._id %>/edit" class="btn btn-primary">Edit Restaurant</a>
+        <button onclick="toggleStatus('<%= restaurant._id %>')" class="btn btn-secondary">
+            <%= restaurant.isActive ? 'Deactivate' : 'Activate' %> Restaurant
+        </button>
+        <a href="/superadmin/restaurants" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<style>
+    .access-urls {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    .access-urls code {
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 0.5rem 0;
+        font-family: monospace;
+    }
+</style>
+
+<script>
+function toggleStatus(restaurantId) {
+    if (confirm('Are you sure you want to toggle this restaurant\'s status?')) {
+        fetch(`/superadmin/restaurants/${restaurantId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error toggling status');
+        });
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,71 @@
+<%- include('../partials/header') %>
+
+<div class="create-table">
+    <h2>Add New Table</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/admin/tables/create" data-validate>
+        <div class="form-group">
+            <label for="tableNumber">Table Number *</label>
+            <input type="text" id="tableNumber" name="tableNumber" required
+                   value="<%= typeof formData !== 'undefined' ? formData.tableNumber : '' %>"
+                   placeholder="e.g., 1, 2, A1, VIP-1">
+            <small>This should be unique for your restaurant</small>
+        </div>
+
+        <div class="form-group">
+            <label for="capacity">Seating Capacity *</label>
+            <input type="number" id="capacity" name="capacity" required
+                   min="1" max="20"
+                   value="<%= typeof formData !== 'undefined' ? formData.capacity : '4' %>"
+                   placeholder="4">
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location *</label>
+            <select id="location" name="location" required>
+                <option value="indoor">Indoor</option>
+                <option value="outdoor">Outdoor</option>
+                <option value="patio">Patio</option>
+                <option value="terrace">Terrace</option>
+                <option value="vip">VIP Area</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" rows="3"
+                      placeholder="Any special notes about this table (e.g., near window, wheelchair accessible)"><%= typeof formData !== 'undefined' ? formData.notes : '' %></textarea>
+        </div>
+
+        <div class="info-box">
+            <h3>QR Code Information</h3>
+            <p>A QR code will be automatically generated for this table.</p>
+            <p>Customers can scan it to access the menu and place orders.</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add Table</button>
+            <a href="/admin/tables" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .info-box {
+        background: #e8f4f8;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 2rem 0;
+        border-left: 4px solid #3498db;
+    }
+    .info-box h3 {
+        margin-top: 0;
+        color: #2c3e50;
+    }
+</style>
+
+<%- include('../partials/footer') %>

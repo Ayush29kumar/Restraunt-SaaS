@@ -1,0 +1,240 @@
+<%- include('../partials/header') %>
+
+<div class="staff-orders">
+    <h2>Orders Dashboard</h2>
+
+    <div class="filters">
+        <form method="GET" action="/staff/orders">
+            <div class="filter-row">
+                <select name="status">
+                    <option value="">All Status</option>
+                    <option value="pending" <%= filters && filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="preparing" <%= filters && filters.status === 'preparing' ? 'selected' : '' %>>Preparing</option>
+                    <option value="served" <%= filters && filters.status === 'served' ? 'selected' : '' %>>Served</option>
+                    <option value="done" <%= filters && filters.status === 'done' ? 'selected' : '' %>>Done</option>
+                </select>
+
+                <select name="tableId">
+                    <option value="">All Tables</option>
+                    <% if (typeof tables !== 'undefined' && tables) { %>
+                        <% tables.forEach(table => { %>
+                            <option value="<%= table._id %>" <%= filters && filters.tableId === table._id.toString() ? 'selected' : '' %>>
+                                Table <%= table.tableNumber %>
+                            </option>
+                        <% }); %>
+                    <% } %>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="/staff/orders" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="orders-grid">
+        <% if (orders && orders.length > 0) { %>
+            <% orders.forEach(order => { %>
+                <div class="order-card <%= order.status %>">
+                    <div class="order-header">
+                        <h3>Order #<%= order.orderNumber %></h3>
+                        <span class="table-number">Table <%= order.table ? order.table.tableNumber : 'N/A' %></span>
+                    </div>
+
+                    <div class="order-items">
+                        <h4>Items:</h4>
+                        <ul>
+                            <% order.items.forEach(item => { %>
+                                <li>
+                                    <span class="quantity"><%= item.quantity %>x</span>
+                                    <span class="name"><%= item.menuItem ? item.menuItem.name : item.name %></span>
+                                    <span class="price">$<%= (item.price * item.quantity).toFixed(2) %></span>
+                                    <% if (item.notes) { %>
+                                        <div class="item-notes">Note: <%= item.notes %></div>
+                                    <% } %>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            Total: $<%= order.total ? order.total.toFixed(2) : '0.00' %>
+                        </div>
+                        <div class="order-time">
+                            <%= new Date(order.createdAt).toLocaleTimeString() %>
+                        </div>
+                    </div>
+
+                    <div class="order-status">
+                        <label>Status:</label>
+                        <select class="status-select" onchange="updateOrderStatus('<%= order._id %>', this.value)">
+                            <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="preparing" <%= order.status === 'preparing' ? 'selected' : '' %>>Preparing</option>
+                            <option value="served" <%= order.status === 'served' ? 'selected' : '' %>>Served</option>
+                            <option value="done" <%= order.status === 'done' ? 'selected' : '' %>>Done</option>
+                        </select>
+                    </div>
+
+                    <div class="order-actions">
+                        <a href="/staff/orders/<%= order._id %>" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p class="text-center">No orders found</p>
+        <% } %>
+    </div>
+</div>
+
+<style>
+    .filters {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    .filter-row select {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .orders-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    .order-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.3s;
+    }
+    .order-card.pending {
+        border-color: #ffc107;
+        background-color: #fffdf0;
+    }
+    .order-card.preparing {
+        border-color: #17a2b8;
+        background-color: #f0f8ff;
+    }
+    .order-card.served {
+        border-color: #6f42c1;
+        background-color: #f8f5ff;
+    }
+    .order-card.done {
+        border-color: #28a745;
+        background-color: #f0fff4;
+    }
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .order-header h3 {
+        margin: 0;
+        color: #2c3e50;
+    }
+    .table-number {
+        background: #3498db;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+    .order-items {
+        margin: 1rem 0;
+    }
+    .order-items h4 {
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+    .order-items ul {
+        list-style: none;
+        padding: 0;
+    }
+    .order-items li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+    }
+    .quantity {
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    .name {
+        flex: 1;
+    }
+    .price {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .item-notes {
+        width: 100%;
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-style: italic;
+        margin-top: 0.25rem;
+    }
+    .order-footer {
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    .order-total {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .order-time {
+        color: #6c757d;
+    }
+    .order-status {
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .status-select {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+function updateOrderStatus(orderId, status) {
+    fetch(`/staff/orders/${orderId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating order status');
+        location.reload();
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

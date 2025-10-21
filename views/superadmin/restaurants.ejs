@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+
+<div class="restaurants-list">
+    <h2>Manage Restaurants</h2>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <div class="actions">
+        <a href="/superadmin/restaurants/create" class="btn btn-primary">Create New Restaurant</a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Subdomain</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (restaurants && restaurants.length > 0) { %>
+                <% restaurants.forEach(restaurant => { %>
+                    <tr>
+                        <td><%= restaurant.name %></td>
+                        <td><%= restaurant.subdomain %></td>
+                        <td><%= restaurant.phone || 'N/A' %></td>
+                        <td><%= restaurant.email || 'N/A' %></td>
+                        <td>
+                            <span class="badge <%= restaurant.isActive ? 'badge-success' : 'badge-danger' %>">
+                                <%= restaurant.isActive ? 'Active' : 'Inactive' %>
+                            </span>
+                        </td>
+                        <td><%= new Date(restaurant.createdAt).toLocaleDateString() %></td>
+                        <td>
+                            <a href="/superadmin/restaurants/<%= restaurant._id %>/view" class="btn btn-sm">View</a>
+                            <a href="/superadmin/restaurants/<%= restaurant._id %>/edit" class="btn btn-sm">Edit</a>
+                            <button class="btn btn-sm btn-toggle-status"
+                                    onclick="toggleStatus('<%= restaurant._id %>')">
+                                <%= restaurant.isActive ? 'Deactivate' : 'Activate' %>
+                            </button>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="7" class="text-center">No restaurants found. Create your first restaurant!</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<script>
+function toggleStatus(restaurantId) {
+    if (confirm('Are you sure you want to toggle this restaurant\'s status?')) {
+        fetch(`/superadmin/restaurants/${restaurantId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error toggling status');
+        });
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

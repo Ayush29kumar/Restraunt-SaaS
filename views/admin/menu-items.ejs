@@ -1,0 +1,94 @@
+<%- include('../partials/header') %>
+
+<div class="menu-items-list">
+    <h2>Menu Items</h2>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <div class="actions">
+        <a href="/admin/menu-items/create" class="btn btn-primary">Add New Menu Item</a>
+    </div>
+
+    <% const categories = ['appetizer', 'main_course', 'dessert', 'beverage', 'special', 'other']; %>
+    <% const categoryNames = {
+        'appetizer': 'Appetizers',
+        'main_course': 'Main Courses',
+        'dessert': 'Desserts',
+        'beverage': 'Beverages',
+        'special': 'Specials',
+        'other': 'Other'
+    }; %>
+
+    <% categories.forEach(category => { %>
+        <% const categoryItems = menuItems.filter(item => item.category === category); %>
+        <% if (categoryItems.length > 0) { %>
+            <section class="menu-category-section">
+                <h3><%= categoryNames[category] %></h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Tags</th>
+                            <th>Available</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% categoryItems.forEach(item => { %>
+                            <tr>
+                                <td><%= item.name %></td>
+                                <td><%= item.description || 'No description' %></td>
+                                <td>$<%= item.price.toFixed(2) %></td>
+                                <td>
+                                    <% if (item.isVegetarian) { %>
+                                        <span class="tag tag-veg">Veg</span>
+                                    <% } %>
+                                    <% if (item.isVegan) { %>
+                                        <span class="tag tag-vegan">Vegan</span>
+                                    <% } %>
+                                    <% if (item.isGlutenFree) { %>
+                                        <span class="tag tag-gf">GF</span>
+                                    <% } %>
+                                    <% if (item.spicyLevel > 0) { %>
+                                        <span class="tag tag-spicy">
+                                            <% for(let i = 0; i < item.spicyLevel; i++) { %>🌶️<% } %>
+                                        </span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="badge <%= item.isAvailable ? 'badge-success' : 'badge-danger' %>">
+                                        <%= item.isAvailable ? 'Available' : 'Unavailable' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/admin/menu-items/<%= item._id %>/edit" class="btn btn-sm">Edit</a>
+                                    <button class="btn btn-sm btn-delete" data-url="/admin/menu-items/<%= item._id %>">Delete</button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </section>
+        <% } %>
+    <% }); %>
+
+    <% if (menuItems.length === 0) { %>
+        <p class="text-center">No menu items found. Start by adding your first menu item!</p>
+    <% } %>
+</div>
+
+<style>
+    .menu-category-section {
+        margin-bottom: 2rem;
+    }
+    .menu-category-section h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+</style>
+
+<%- include('../partials/footer') %>

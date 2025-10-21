@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard">
+    <h2>Restaurant Admin Dashboard</h2>
+    <h3>Welcome to <%= user.restaurantName %></h3>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Menu Items</h3>
+            <p class="stat-number"><%= stats.totalMenuItems %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Tables</h3>
+            <p class="stat-number"><%= stats.totalTables %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Staff Members</h3>
+            <p class="stat-number"><%= stats.totalStaff %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Today's Orders</h3>
+            <p class="stat-number"><%= stats.todaysOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Pending Orders</h3>
+            <p class="stat-number"><%= stats.pendingOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <p class="stat-number"><%= stats.totalOrders %></p>
+        </div>
+    </div>
+
+    <section class="recent-section">
+        <h3>Recent Orders</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Table</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (recentOrders && recentOrders.length > 0) { %>
+                    <% recentOrders.forEach(order => { %>
+                        <tr>
+                            <td><%= order.orderNumber %></td>
+                            <td>Table <%= order.table ? order.table.tableNumber : 'N/A' %></td>
+                            <td><%= order.items.length %> items</td>
+                            <td>$<%= order.total ? order.total.toFixed(2) : '0.00' %></td>
+                            <td>
+                                <span class="badge badge-<%= order.status === 'done' ? 'success' : order.status === 'pending' ? 'warning' : 'info' %>">
+                                    <%= order.status %>
+                                </span>
+                            </td>
+                            <td><%= new Date(order.createdAt).toLocaleTimeString() %></td>
+                            <td>
+                                <a href="/admin/orders/<%= order._id %>" class="btn btn-sm">View</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" class="text-center">No orders yet</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </section>
+
+    <div class="actions">
+        <a href="/admin/menu-items" class="btn btn-primary">Manage Menu</a>
+        <a href="/admin/tables" class="btn btn-primary">Manage Tables</a>
+        <a href="/admin/orders" class="btn btn-secondary">View All Orders</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

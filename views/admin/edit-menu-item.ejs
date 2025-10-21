@@ -1,0 +1,390 @@
+<%- include('../partials/header') %>
+
+<div class="edit-menu-item">
+    <h2>Edit Menu Item</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/admin/menu-items/<%= menuItem._id %>/edit" enctype="multipart/form-data" data-validate>
+        <div class="form-group">
+            <label for="name">Item Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="<%= menuItem.name %>"
+                   placeholder="e.g., Margherita Pizza">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="Describe the dish, ingredients, etc."><%= menuItem.description %></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Price * ($)</label>
+            <input type="number" id="price" name="price" required
+                   step="0.01" min="0"
+                   value="<%= menuItem.price %>"
+                   placeholder="9.99">
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+                <option value="">Select a category</option>
+                <option value="appetizer" <%= menuItem.category === 'appetizer' ? 'selected' : '' %>>Appetizer</option>
+                <option value="main_course" <%= menuItem.category === 'main_course' ? 'selected' : '' %>>Main Course</option>
+                <option value="dessert" <%= menuItem.category === 'dessert' ? 'selected' : '' %>>Dessert</option>
+                <option value="beverage" <%= menuItem.category === 'beverage' ? 'selected' : '' %>>Beverage</option>
+                <option value="special" <%= menuItem.category === 'special' ? 'selected' : '' %>>Special</option>
+                <option value="other" <%= menuItem.category === 'other' ? 'selected' : '' %>>Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Current Images</label>
+            <% if (menuItem.images && menuItem.images.length > 0) { %>
+                <div class="current-images">
+                    <% menuItem.images.forEach((image, index) => { %>
+                        <div class="current-image-item" data-index="<%= index %>">
+                            <img src="<%= image %>" alt="Menu item image">
+                            <button type="button" class="remove-image" onclick="removeExistingImage(<%= index %>)">×</button>
+                        </div>
+                    <% }) %>
+                </div>
+                <input type="hidden" id="existingImages" name="existingImages" value="<%= menuItem.images.join(',') %>">
+            <% } else { %>
+                <p class="no-images">No images uploaded yet</p>
+                <input type="hidden" id="existingImages" name="existingImages" value="">
+            <% } %>
+        </div>
+
+        <div class="form-group">
+            <label for="newImages">Upload New Images</label>
+            <input type="file" id="newImages" name="newImages" multiple accept="image/*" class="file-input">
+            <small>Upload additional images for this menu item. Supported formats: JPEG, PNG, GIF, WebP (max 5MB each, up to 10 images total)</small>
+            <div id="new-image-preview" class="image-preview"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Current Android AR Model</label>
+            <% if (menuItem.arModel && menuItem.arModel.android) { %>
+                <div class="current-file">
+                    <span>✓ Android model uploaded: <%= menuItem.arModel.android.split('/').pop() %></span>
+                    <button type="button" class="btn-small" onclick="removeArModel('android')">Remove</button>
+                </div>
+                <input type="hidden" id="keepAndroidModel" name="keepAndroidModel" value="true">
+            <% } else { %>
+                <p>No Android AR model uploaded</p>
+                <input type="hidden" id="keepAndroidModel" name="keepAndroidModel" value="false">
+            <% } %>
+        </div>
+
+        <div class="form-group">
+            <label for="androidArModel">Upload New Android AR Model (.glb or .gltf)</label>
+            <input type="file" id="androidArModel" name="androidArModel" accept=".glb,.gltf" class="file-input">
+            <small>3D model file for Android AR (Google Scene Viewer). Max size: 50MB</small>
+            <div id="android-model-info" class="file-info"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Current iOS AR Model</label>
+            <% if (menuItem.arModel && menuItem.arModel.ios) { %>
+                <div class="current-file">
+                    <span>✓ iOS model uploaded: <%= menuItem.arModel.ios.split('/').pop() %></span>
+                    <button type="button" class="btn-small" onclick="removeArModel('ios')">Remove</button>
+                </div>
+                <input type="hidden" id="keepIosModel" name="keepIosModel" value="true">
+            <% } else { %>
+                <p>No iOS AR model uploaded</p>
+                <input type="hidden" id="keepIosModel" name="keepIosModel" value="false">
+            <% } %>
+        </div>
+
+        <div class="form-group">
+            <label for="iosArModel">Upload New iOS AR Model (.usdz)</label>
+            <input type="file" id="iosArModel" name="iosArModel" accept=".usdz" class="file-input">
+            <small>3D model file for iOS AR (AR Quick Look). Max size: 50MB</small>
+            <div id="ios-model-info" class="file-info"></div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="preparationTime">Preparation Time (minutes)</label>
+                <input type="number" id="preparationTime" name="preparationTime"
+                       min="1" max="120"
+                       value="<%= menuItem.preparationTime %>"
+                       placeholder="15">
+            </div>
+
+            <div class="form-group">
+                <label for="spicyLevel">Spicy Level (0-5)</label>
+                <input type="number" id="spicyLevel" name="spicyLevel"
+                       min="0" max="5"
+                       value="<%= menuItem.spicyLevel %>"
+                       placeholder="0">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Dietary Options</label>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" name="isVegetarian" value="true" <%= menuItem.isVegetarian ? 'checked' : '' %>>
+                    Vegetarian
+                </label>
+                <label>
+                    <input type="checkbox" name="isVegan" value="true" <%= menuItem.isVegan ? 'checked' : '' %>>
+                    Vegan
+                </label>
+                <label>
+                    <input type="checkbox" name="isGlutenFree" value="true" <%= menuItem.isGlutenFree ? 'checked' : '' %>>
+                    Gluten-Free
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="isAvailable">Availability</label>
+            <select id="isAvailable" name="isAvailable">
+                <option value="true" <%= menuItem.isAvailable ? 'selected' : '' %>>Available</option>
+                <option value="false" <%= !menuItem.isAvailable ? 'selected' : '' %>>Not Available</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="tags">Tags (comma-separated)</label>
+            <input type="text" id="tags" name="tags"
+                   value="<%= menuItem.tags ? menuItem.tags.join(', ') : '' %>"
+                   placeholder="popular, healthy, organic">
+        </div>
+
+        <div class="form-group">
+            <label for="allergens">Allergens (comma-separated)</label>
+            <input type="text" id="allergens" name="allergens"
+                   value="<%= menuItem.allergens ? menuItem.allergens.join(', ') : '' %>"
+                   placeholder="nuts, dairy, eggs">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Menu Item</button>
+            <a href="/admin/menu-items" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .checkbox-group {
+        display: flex;
+        gap: 1.5rem;
+    }
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: normal;
+    }
+    .file-input {
+        padding: 0.5rem;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+        width: 100%;
+        cursor: pointer;
+    }
+    .file-input:hover {
+        border-color: #3498db;
+        background: #f0f8ff;
+    }
+    .current-images {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .current-image-item {
+        position: relative;
+        width: 100px;
+        height: 100px;
+    }
+    .current-image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+    }
+    .current-image-item.removed {
+        opacity: 0.3;
+    }
+    .remove-image {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .image-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .image-preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+    }
+    .current-file {
+        padding: 0.5rem;
+        background: #f0f8ff;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-small {
+        padding: 0.25rem 0.5rem;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+    .file-info {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #f0f8ff;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        display: none;
+    }
+    .file-info.active {
+        display: block;
+    }
+    .no-images {
+        color: #666;
+        font-style: italic;
+    }
+</style>
+
+<script>
+// Track removed existing images
+let removedImages = [];
+
+// Remove existing image
+function removeExistingImage(index) {
+    const imageItem = document.querySelector(`[data-index="${index}"]`);
+    imageItem.classList.add('removed');
+
+    // Update the hidden field with remaining images
+    const existingImagesInput = document.getElementById('existingImages');
+    const images = existingImagesInput.value.split(',').filter(img => img);
+    images[index] = ''; // Mark as removed
+    existingImagesInput.value = images.join(',');
+}
+
+// Remove AR model
+function removeArModel(platform) {
+    if (platform === 'android') {
+        document.getElementById('keepAndroidModel').value = 'false';
+        document.querySelector('.current-file').style.display = 'none';
+    } else if (platform === 'ios') {
+        document.getElementById('keepIosModel').value = 'false';
+        document.querySelectorAll('.current-file')[1].style.display = 'none';
+    }
+}
+
+// New image preview functionality
+document.getElementById('newImages').addEventListener('change', function(e) {
+    const preview = document.getElementById('new-image-preview');
+    preview.innerHTML = '';
+
+    const files = Array.from(e.target.files);
+
+    // Check total images (existing + new)
+    const existingCount = document.querySelectorAll('.current-image-item:not(.removed)').length;
+    if (existingCount + files.length > 10) {
+        alert(`Maximum 10 images allowed total. You have ${existingCount} existing images.`);
+        e.target.value = '';
+        return;
+    }
+
+    files.forEach((file, index) => {
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`Image ${file.name} is too large. Maximum size is 5MB`);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            img.title = file.name;
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+// AR model file info
+document.getElementById('androidArModel').addEventListener('change', function(e) {
+    const info = document.getElementById('android-model-info');
+    if (e.target.files[0]) {
+        const file = e.target.files[0];
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        info.innerHTML = `Selected: ${file.name} (${sizeMB} MB)`;
+        info.classList.add('active');
+
+        if (file.size > 50 * 1024 * 1024) {
+            alert('Android AR model is too large. Maximum size is 50MB');
+            e.target.value = '';
+            info.innerHTML = '';
+            info.classList.remove('active');
+        }
+    } else {
+        info.innerHTML = '';
+        info.classList.remove('active');
+    }
+});
+
+document.getElementById('iosArModel').addEventListener('change', function(e) {
+    const info = document.getElementById('ios-model-info');
+    if (e.target.files[0]) {
+        const file = e.target.files[0];
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        info.innerHTML = `Selected: ${file.name} (${sizeMB} MB)`;
+        info.classList.add('active');
+
+        if (file.size > 50 * 1024 * 1024) {
+            alert('iOS AR model is too large. Maximum size is 50MB');
+            e.target.value = '';
+            info.innerHTML = '';
+            info.classList.remove('active');
+        }
+    } else {
+        info.innerHTML = '';
+        info.classList.remove('active');
+    }
+});
+</script>
+
+<%- include('../partials/footer') %>

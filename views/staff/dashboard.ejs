@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard">
+    <h2>Staff Dashboard</h2>
+    <h3>Today's Orders Overview</h3>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Pending</h3>
+            <p class="stat-number"><%= stats.pendingOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Preparing</h3>
+            <p class="stat-number"><%= stats.preparingOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Served</h3>
+            <p class="stat-number"><%= stats.servedOrders %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Completed</h3>
+            <p class="stat-number"><%= stats.completedOrders %></p>
+        </div>
+    </div>
+
+    <section class="recent-section">
+        <h3>Active Orders</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Table</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (activeOrders && activeOrders.length > 0) { %>
+                    <% activeOrders.forEach(order => { %>
+                        <tr>
+                            <td><%= order.orderNumber %></td>
+                            <td>Table <%= order.table ? order.table.tableNumber : 'N/A' %></td>
+                            <td><%= order.items.length %> items</td>
+                            <td>
+                                <select class="status-select" data-url="/staff/orders/<%= order._id %>/status" onchange="updateStatus(this)">
+                                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="preparing" <%= order.status === 'preparing' ? 'selected' : '' %>>Preparing</option>
+                                    <option value="served" <%= order.status === 'served' ? 'selected' : '' %>>Served</option>
+                                    <option value="done" <%= order.status === 'done' ? 'selected' : '' %>>Done</option>
+                                </select>
+                            </td>
+                            <td><%= new Date(order.createdAt).toLocaleTimeString() %></td>
+                            <td>
+                                <a href="/staff/orders/<%= order._id %>" class="btn btn-sm">View</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="text-center">No active orders</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </section>
+
+    <div class="actions">
+        <a href="/staff/orders" class="btn btn-primary">View All Orders</a>
+    </div>
+</div>
+
+<script>
+function updateStatus(select) {
+    const url = select.dataset.url;
+    const newStatus = select.value;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating status');
+        location.reload();
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

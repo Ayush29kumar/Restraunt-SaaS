@@ -1,0 +1,156 @@
+<%- include('../partials/header') %>
+
+<div class="tables-list">
+    <h2>Manage Tables</h2>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <div class="actions">
+        <a href="/admin/tables/create" class="btn btn-primary">Add New Table</a>
+    </div>
+
+    <div class="tables-grid">
+        <% if (tables && tables.length > 0) { %>
+            <% tables.forEach(table => { %>
+                <div class="table-card <%= table.status %>">
+                    <h3>Table <%= table.tableNumber %></h3>
+                    <div class="table-info">
+                        <p><strong>Capacity:</strong> <%= table.capacity %> seats</p>
+                        <p><strong>Location:</strong> <%= table.location.charAt(0).toUpperCase() + table.location.slice(1) %></p>
+                        <p><strong>Status:</strong>
+                            <span class="badge badge-<%= table.status === 'available' ? 'success' : table.status === 'occupied' ? 'warning' : 'info' %>">
+                                <%= table.status.charAt(0).toUpperCase() + table.status.slice(1) %>
+                            </span>
+                        </p>
+                        <% if (table.currentOrder) { %>
+                            <p><strong>Current Order:</strong> #<%= table.currentOrder %></p>
+                        <% } %>
+                    </div>
+                    <div class="table-actions">
+                        <select class="status-select" onchange="updateTableStatus('<%= table._id %>', this.value)">
+                            <option value="available" <%= table.status === 'available' ? 'selected' : '' %>>Available</option>
+                            <option value="occupied" <%= table.status === 'occupied' ? 'selected' : '' %>>Occupied</option>
+                            <option value="reserved" <%= table.status === 'reserved' ? 'selected' : '' %>>Reserved</option>
+                            <option value="cleaning" <%= table.status === 'cleaning' ? 'selected' : '' %>>Cleaning</option>
+                        </select>
+                        <button class="btn btn-sm btn-delete" onclick="deleteTable('<%= table._id %>')">Delete</button>
+                    </div>
+                    <div class="qr-info">
+                        <small>QR URL: /r/<%= user.restaurantName ? user.restaurantName.toLowerCase().replace(/\s+/g, '-') : 'restaurant' %>/table/<%= table.tableNumber %></small>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p class="text-center">No tables found. Start by adding your first table!</p>
+        <% } %>
+    </div>
+</div>
+
+<style>
+    .tables-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    .table-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    .table-card.available {
+        border-color: #28a745;
+    }
+    .table-card.occupied {
+        border-color: #ffc107;
+        background-color: #fffdf0;
+    }
+    .table-card.reserved {
+        border-color: #17a2b8;
+        background-color: #f0f8ff;
+    }
+    .table-card.cleaning {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+    }
+    .table-card h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+    .table-info p {
+        margin: 0.5rem 0;
+    }
+    .table-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+    .status-select {
+        flex: 1;
+        padding: 0.25rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .qr-info {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
+
+<script>
+function updateTableStatus(tableId, status) {
+    fetch(`/admin/tables/${tableId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating table status');
+        location.reload();
+    });
+}
+
+function deleteTable(tableId) {
+    if (confirm('Are you sure you want to delete this table?')) {
+        fetch(`/admin/tables/${tableId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting table');
+        });
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,112 @@
+<%- include('../partials/header') %>
+
+<div class="staff-management">
+    <h2>Staff Management</h2>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <div class="actions">
+        <a href="/admin/staff/create" class="btn btn-primary">Add New Staff Member</a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (staff && staff.length > 0) { %>
+                <% staff.forEach(member => { %>
+                    <tr>
+                        <td><%= member.name %></td>
+                        <td><%= member.username %></td>
+                        <td><%= member.email || 'Not provided' %></td>
+                        <td><%= member.phone || 'Not provided' %></td>
+                        <td>
+                            <span class="badge <%= member.isActive ? 'badge-success' : 'badge-danger' %>">
+                                <%= member.isActive ? 'Active' : 'Inactive' %>
+                            </span>
+                        </td>
+                        <td>
+                            <%= member.lastLogin ? new Date(member.lastLogin).toLocaleDateString() : 'Never' %>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" onclick="toggleStaffStatus('<%= member._id %>')">
+                                <%= member.isActive ? 'Deactivate' : 'Activate' %>
+                            </button>
+                        </td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr>
+                    <td colspan="7" class="text-center">No staff members found. Add your first staff member!</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="staff-notes">
+        <h3>Staff Access Information</h3>
+        <ul>
+            <li>Staff members can login at: <code>/auth/login</code></li>
+            <li>They use their username and password to access the staff dashboard</li>
+            <li>Staff can view and update order statuses</li>
+            <li>Default password for new staff: You set this when creating them</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .staff-notes {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .staff-notes h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+    .staff-notes code {
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+</style>
+
+<script>
+function toggleStaffStatus(staffId) {
+    if (confirm('Are you sure you want to toggle this staff member\'s status?')) {
+        fetch(`/admin/staff/${staffId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating staff status');
+        });
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,94 @@
+<%- include('../partials/header') %>
+
+<div class="edit-restaurant">
+    <h2>Edit Restaurant</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/superadmin/restaurants/<%= restaurant._id %>/edit" data-validate>
+        <div class="form-group">
+            <label for="name">Restaurant Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="<%= restaurant.name %>"
+                   placeholder="e.g., The Italian Kitchen">
+        </div>
+
+        <div class="form-group">
+            <label for="subdomain">Subdomain *</label>
+            <input type="text" id="subdomain" name="subdomain" required
+                   value="<%= restaurant.subdomain %>"
+                   pattern="[a-z0-9-]+"
+                   placeholder="e.g., italian-kitchen">
+            <small>Only lowercase letters, numbers, and hyphens allowed</small>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address"
+                   value="<%= restaurant.address || '' %>"
+                   placeholder="123 Main Street, City">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone"
+                   value="<%= restaurant.phone || '' %>"
+                   placeholder="+1 234-567-8900">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Restaurant Email</label>
+            <input type="email" id="email" name="email"
+                   value="<%= restaurant.email || '' %>"
+                   placeholder="info@restaurant.com">
+        </div>
+
+        <div class="form-group">
+            <label for="isActive">Status</label>
+            <select id="isActive" name="isActive">
+                <option value="true" <%= restaurant.isActive ? 'selected' : '' %>>Active</option>
+                <option value="false" <%= !restaurant.isActive ? 'selected' : '' %>>Inactive</option>
+            </select>
+        </div>
+
+        <% if (adminUser) { %>
+            <hr>
+            <h3>Restaurant Admin Information</h3>
+            <table class="data-table">
+                <tr>
+                    <th>Admin Name</th>
+                    <td><%= adminUser.name %></td>
+                </tr>
+                <tr>
+                    <th>Admin Username</th>
+                    <td><%= adminUser.username %></td>
+                </tr>
+                <tr>
+                    <th>Admin Email</th>
+                    <td><%= adminUser.email || 'Not provided' %></td>
+                </tr>
+                <tr>
+                    <th>Admin Status</th>
+                    <td>
+                        <span class="badge <%= adminUser.isActive ? 'badge-success' : 'badge-danger' %>">
+                            <%= adminUser.isActive ? 'Active' : 'Inactive' %>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Last Login</th>
+                    <td><%= adminUser.lastLogin ? new Date(adminUser.lastLogin).toLocaleDateString() : 'Never' %></td>
+                </tr>
+            </table>
+        <% } %>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Update Restaurant</button>
+            <a href="/superadmin/restaurants/<%= restaurant._id %>/view" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<%- include('../partials/footer') %>

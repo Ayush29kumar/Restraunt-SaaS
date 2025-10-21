@@ -1,0 +1,70 @@
+<%- include('../partials/header') %>
+
+<div class="dashboard">
+    <h2>Super Admin Dashboard</h2>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Restaurants</h3>
+            <p class="stat-number"><%= stats.totalRestaurants %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Active Restaurants</h3>
+            <p class="stat-number"><%= stats.activeRestaurants %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-number"><%= stats.totalUsers %></p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Orders</h3>
+            <p class="stat-number"><%= stats.totalOrders %></p>
+        </div>
+    </div>
+
+    <section class="recent-section">
+        <h3>Recent Restaurants</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Subdomain</th>
+                    <th>Status</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (recentRestaurants && recentRestaurants.length > 0) { %>
+                    <% recentRestaurants.forEach(restaurant => { %>
+                        <tr>
+                            <td><%= restaurant.name %></td>
+                            <td><%= restaurant.subdomain %></td>
+                            <td>
+                                <span class="badge <%= restaurant.isActive ? 'badge-success' : 'badge-danger' %>">
+                                    <%= restaurant.isActive ? 'Active' : 'Inactive' %>
+                                </span>
+                            </td>
+                            <td><%= restaurant.createdBy ? restaurant.createdBy.name : 'System' %></td>
+                            <td>
+                                <a href="/superadmin/restaurants/<%= restaurant._id %>/view" class="btn btn-sm">View</a>
+                                <a href="/superadmin/restaurants/<%= restaurant._id %>/edit" class="btn btn-sm">Edit</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" class="text-center">No restaurants yet</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </section>
+
+    <div class="actions">
+        <a href="/superadmin/restaurants/create" class="btn btn-primary">Create New Restaurant</a>
+        <a href="/superadmin/restaurants" class="btn btn-secondary">View All Restaurants</a>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

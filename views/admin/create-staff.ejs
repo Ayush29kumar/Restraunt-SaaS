@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+
+<div class="create-staff">
+    <h2>Add New Staff Member</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/admin/staff/create" data-validate>
+        <div class="form-group">
+            <label for="name">Full Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="<%= typeof formData !== 'undefined' ? formData.name : '' %>"
+                   placeholder="John Doe">
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username *</label>
+            <input type="text" id="username" name="username" required
+                   pattern="[a-z0-9_-]+"
+                   value="<%= typeof formData !== 'undefined' ? formData.username : '' %>"
+                   placeholder="johndoe">
+            <small>Lowercase letters, numbers, hyphens, and underscores only</small>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" required
+                   minlength="6"
+                   placeholder="Minimum 6 characters">
+            <small>Make sure to share this password securely with the staff member</small>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email"
+                   value="<%= typeof formData !== 'undefined' ? formData.email : '' %>"
+                   placeholder="john@example.com">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone"
+                   value="<%= typeof formData !== 'undefined' ? formData.phone : '' %>"
+                   placeholder="+1 234-567-8900">
+        </div>
+
+        <div class="info-box">
+            <h3>Staff Permissions</h3>
+            <ul>
+                <li>View all restaurant orders</li>
+                <li>Update order status (pending → preparing → served → done)</li>
+                <li>Access staff dashboard</li>
+                <li>View order details and customer information</li>
+            </ul>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add Staff Member</button>
+            <a href="/admin/staff" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .info-box {
+        background: #f0f8ff;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 2rem 0;
+        border-left: 4px solid #17a2b8;
+    }
+    .info-box h3 {
+        margin-top: 0;
+        color: #2c3e50;
+    }
+    .info-box ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+</style>
+
+<%- include('../partials/footer') %>
